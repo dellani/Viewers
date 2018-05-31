@@ -1,3 +1,5 @@
+
+
 function loadSRTools(Part10SRArrayBuffer, displaySets) {
     // get the dicom data as an Object
     let dicomData = dcmjs.data.DicomMessage.readFile(Part10SRArrayBuffer);
@@ -31,6 +33,11 @@ function loadSRTools(Part10SRArrayBuffer, displaySets) {
         existingToolState[imageId].length.data.push(lengthData);
       });
     });
+
+    if (OHIF.viewer.measurementApi) {
+        OHIF.viewer.measurementApi.syncSRToolDataAndMeasurements(loadedToolState, dataset);
+    }
+    
     toolStateManager.restoreToolState(existingToolState);
 }
 
@@ -155,7 +162,9 @@ function imagingMeasurementsToToolState(dataset, displaySets) {
 }
 
 export function handleSR(series, displaySets) {
-
+    import { Meteor } from 'meteor/meteor';
+    import { Accounts } from 'meteor/accounts-base';
+    
     const instance = series.getFirstInstance();
 
     console.log(`loading ${instance}`);
@@ -164,6 +173,12 @@ export function handleSR(series, displaySets) {
     let request = new XMLHttpRequest();
     request.responseType = 'arraybuffer';
     request.open('GET', instance.getDataProperty('wadouri'));
+    const userId = Meteor.userId();
+    const loginToken = Accounts._storedLoginToken();
+    if (userId && loginToken) {
+        request.setRequestHeader("x-user-id", userId);
+        request.setRequestHeader("x-auth-token", loginToken);
+    }
     request.onload = function (progressEvent) {
         loadSRTools(progressEvent.currentTarget.response, displaySets);
     };

@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { OHIF } from 'meteor/ohif:core';
 import { cornerstoneWADOImageLoader } from 'meteor/ohif:cornerstone';
 import { Accounts } from 'meteor/accounts-base';
+import { createDefaultUser, signInDefaultUser } from './user';
 
 Meteor.startup(function() {
     const maxWebWorkers = Math.max(navigator.hardwareConcurrency - 1, 1);
@@ -21,25 +22,8 @@ Meteor.startup(function() {
 
     cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
 
-    const accountData = { 
-        email: 'default@ohif.org',
-        password: '12345678aA*',
-        profile: {
-            fullName: 'Default User'
-        }
-    };
-
-    const user = Meteor.users.findOne({
-        emails: {
-            $elemMatch: {
-                address: 'default@ohif.org'
-            }
-        }
-    });
-    if (!user) {
-        Accounts.createUser(accountData);
-    }
-    Meteor.loginWithPassword(accountData.email, accountData.password);
+    createDefaultUser();
+    signInDefaultUser();
 
     cornerstoneWADOImageLoader.configure({
         beforeSend: function(xhr) {

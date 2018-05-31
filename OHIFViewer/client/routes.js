@@ -1,5 +1,6 @@
 import { Router } from 'meteor/iron:router';
 import { OHIF } from 'meteor/ohif:core';
+import { signInDefaultUser, checkDefaultUserSignIn } from './user';
 
 Router.configure({
     layoutTemplate: 'layout',
@@ -7,6 +8,15 @@ Router.configure({
 });
 
 Router.onBeforeAction('loading');
+
+Router.onBeforeAction(function() {
+    // Check if user is signed in or needs an email verification
+    if (checkDefaultUserSignIn()) {
+        signInDefaultUser();
+    } else {
+        this.next();
+    }
+});
 
 Router.route('/', function() {
     Router.go('studylist', {}, { replaceState: true });

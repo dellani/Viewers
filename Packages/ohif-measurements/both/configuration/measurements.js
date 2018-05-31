@@ -280,6 +280,60 @@ class MeasurementApi {
         });
     }
 
+    syncSRToolDataAndMeasurements(measurementSRData, dataset) {
+        let imagePath, seriesInstanceUid, sopInstanceUid;
+        const timepointId = OHIF.viewer.data.currentTimepointId;
+        const { PatientID, StudyInstanceUID, FrameIndex } = dataset;
+        const frameIndex = FrameIndex || 0;
+        const measurements = [];
+        const measurementData = {
+            userId: Meteor.userId(),
+            timepointId,
+            patientId: PatientID,
+            studyInstanceUid: StudyInstanceUID,
+            frameIndex
+        };
+
+        let measurementNumber = this.toolGroups['allTools'].find({
+            studyInstanceUid: { $in: [StudyInstanceUID] }
+        }).count() + 1;
+
+        if (timepointId !== StudyInstanceUID) return;
+
+        for(imageId in measurementSRData) {
+            seriesInstanceUid = cornerstone.metaData.get('series', imageId).seriesInstanceUid;
+            sopInstanceUid = cornerstone.metaData.get('instance', imageId).sopInstanceUid;
+            imagePath = [StudyInstanceUID, seriesInstanceUid, sopInstanceUid, frameIndex].join('_');
+            for(toolType in measurementSRData[imageId]) {
+                for(measurement of measurementSRData[imageId][toolType].data) {
+                    measurement.toolType = toolType;
+                    measurement.imageId = imageId;
+                    measurement.imagePath = imagePath;
+                    measurement.measurementNumber = measurementNumber;
+                    measurement.seriesInstanceUid = seriesInstanceUid;
+                    measurement.sopInstanceUid = sopInstanceUid;
+                    Object.assign(measurement, measurementData);
+                    //measurements.push(measurement);
+
+                    // Clean the measurement according to the Schema
+                    this.tools[toolType]._c2._simpleSchema.clean(measurement);
+                    // Insert the new measurement into the collection
+                    this.tools[toolType].insert(measurement);
+                    measurementNumber++;
+                }
+            }
+        }
+
+        // for(measurement of measurements){
+        //     if(!measurement.toolType) return;
+        //     // Clean the measurement according to the Schema
+        //     this.tools[measurement.toolType]._c2._simpleSchema.clean(measurement);
+
+        //     // Insert the new measurement into the collection
+        //     this.tools[measurement.toolType].insert(measurement);
+        // }
+    }
+
     validateMeasurements() {
         const validateFn = configuration.dataValidation.validateMeasurements;
         if (validateFn && validateFn instanceof Function) {
