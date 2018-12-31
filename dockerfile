@@ -8,6 +8,8 @@ FROM node:8.10.0-slim as builder
 RUN apt-get update && apt-get install -y \
 	curl \
 	g++ \
+	git \
+	python \
 	build-essential
 
 RUN curl https://install.meteor.com/ | sh
@@ -22,6 +24,8 @@ ADD --chown=user:user . /home/user/Viewers
 WORKDIR /home/user/Viewers/OHIFViewer
 
 ENV METEOR_PACKAGE_DIRS=../Packages
+ENV METEOR_PROFILE=1
+RUN meteor npm install
 RUN meteor build --directory /home/user/app
 WORKDIR /home/user/app/bundle/programs/server
 RUN npm install --production

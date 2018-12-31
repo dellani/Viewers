@@ -59,7 +59,7 @@ Meteor.startup(function() {
         previousPanel: 'LEFT',
 
         // Miscellaneous hotkeys
-        toggleOverlayTags: 'SHIFT',
+        toggleOverlayTags: 'O',
         toggleCinePlay: 'SPACE',
         toggleCineDialog: '',
         toggleDownloadDialog: '',
@@ -193,11 +193,11 @@ Meteor.startup(function() {
             disabled: () => !canMoveDisplaySets(true)
         },
         nextPanel: {
-            name: 'Next Panel',
+            name: 'Next Image Viewport',
             action: () => panelNavigation.loadNextActivePanel()
         },
         previousPanel: {
-            name: 'Previous Panel',
+            name: 'Previous Image Viewport',
             action: () => panelNavigation.loadPreviousActivePanel()
         }
     }, true);
@@ -205,7 +205,7 @@ Meteor.startup(function() {
     // Register miscellaneous commands
     OHIF.commands.set(contextName, {
         toggleOverlayTags: {
-            name: 'Toggle Image Annotations',
+            name: 'Toggle Image Info Overlay',
             action() {
                 const $dicomTags = $('.imageViewerViewportOverlay .dicomTag');
                 $dicomTags.toggle($dicomTags.eq(0).css('display') === 'none');

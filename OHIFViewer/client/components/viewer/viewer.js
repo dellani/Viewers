@@ -4,6 +4,7 @@ import { Template } from 'meteor/templating';
 import { ReactiveDict } from 'meteor/reactive-dict';
 import { Tracker } from 'meteor/tracker';
 import { OHIF } from 'meteor/ohif:core';
+import { MeasurementTable } from 'meteor/ohif:measurement-table';
 
 import 'meteor/ohif:cornerstone';
 import 'meteor/ohif:viewerbase';
@@ -64,8 +65,6 @@ Meteor.startup(() => {
         invert: viewportUtils.invert
     };
 
-    OHIF.viewer.stackImagePositionOffsetSynchronizer = new OHIF.viewerbase.StackImagePositionOffsetSynchronizer();
-
     // Create the synchronizer used to update reference lines
     OHIF.viewer.updateImageSynchronizer = new cornerstoneTools.Synchronizer('cornerstonenewimage', cornerstoneTools.updateImageSynchronizer);
 
@@ -74,6 +73,9 @@ Meteor.startup(() => {
     // Metadata configuration
     const metadataProvider = OHIF.viewer.metadataProvider;
     cornerstone.metaData.addProvider(metadataProvider.provider.bind(metadataProvider));
+
+    // Instanciate viewer plugins
+    OHIF.viewer.measurementTable = new MeasurementTable();  
 });
 
 Template.viewer.onCreated(() => {
@@ -120,7 +122,7 @@ Template.viewer.onCreated(() => {
         const studyMetadata = new OHIF.metadata.StudyMetadata(study, study.studyInstanceUid);
         let displaySets = study.displaySets;
 
-        if(!study.displaySets) {
+        if (!study.displaySets) {
             displaySets = OHIF.viewerbase.sortingManager.getDisplaySets(studyMetadata);
             study.displaySets = displaySets;
         }
@@ -131,11 +133,19 @@ Template.viewer.onCreated(() => {
         OHIF.viewer.Studies.insert(study);
         OHIF.viewer.StudyMetadataList.insert(studyMetadata);
         OHIF.viewer.data.studyInstanceUids.push(study.studyInstanceUid);
+
+        // Updates WADO-RS metaDataManager
+        OHIF.viewerbase.updateMetaDataManager(study);
     });
+
+    // Call Viewer plugins onCreated functions
+    if(typeof OHIF.viewer.measurementTable.onCreated === 'function') {
+        OHIF.viewer.measurementTable.onCreated(instance);
+    }
 });
 
 Template.viewer.onRendered(function() {
-
+    const instance = Template.instance();
     this.autorun(function() {
         // To make sure ohif viewerMain is rendered before initializing Hanging Protocols
         const isOHIFViewerMainRendered = Session.get('OHIFViewerMainRendered');
@@ -148,20 +158,23 @@ Template.viewer.onRendered(function() {
         }
     });
 
+    // Call Viewer plugins onRendered functions 
+    if(typeof OHIF.viewer.measurementTable.onRendered === 'function') {
+        OHIF.viewer.measurementTable.onRendered(instance);
+    }
+
 });
 
-Template.viewer.events({
-    'click .js-toggle-studies'() {
-        const instance = Template.instance();
-        const current = instance.state.get('leftSidebar');
-        instance.state.set('leftSidebar', !current);
+Template.viewer.events( Object.assign({
+    // Viewer Events
     },
+    MeasurementTable.measurementEvents
+));
 
-    'click .js-toggle-protocol-editor'() {
-        const instance = Template.instance();
-        const current = instance.state.get('rightSidebar');
-        instance.data.state.set('rightSidebar', !current);
-    },
+Template.viewer.onDestroyed(function() {
+    if(typeof OHIF.viewer.measurementTable.onDestroyed === 'function') {
+        OHIF.viewer.measurementTable.onDestroyed();
+    }
 });
 
 Template.viewer.helpers({

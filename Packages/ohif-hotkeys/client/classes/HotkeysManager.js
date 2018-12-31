@@ -36,7 +36,7 @@ export class HotkeysManager {
         return new Promise((resolve, reject) => {
             if (this.storeFunction) {
                 this.storeFunction.call(this, storageKey, definitions).then(resolve).catch(reject);
-            } else if (Meteor.userId()) {
+            } else if (OHIF.user.userLoggedIn()) {
                 OHIF.user.setData(storageKey, definitions).then(resolve).catch(reject);
             } else {
                 Session.setPersistent(storageKey, definitions);
@@ -50,7 +50,7 @@ export class HotkeysManager {
         return new Promise((resolve, reject) => {
             if (this.retrieveFunction) {
                 this.retrieveFunction(contextName).then(resolve).catch(reject);
-            } else if (OHIF.user) {
+            } else if (OHIF.user.userLoggedIn()) {
                 try {
                     resolve(OHIF.user.getData(storageKey));
                 } catch(error) {
@@ -132,12 +132,12 @@ export class HotkeysManager {
         delete this.defaults[contextName];
     }
 
-    resetDefauls(contextName) {
+	resetDefaults(contextName) {
         const context = this.getContext(contextName);
         const definitions = this.defaults[contextName];
         if (!context || !definitions) return;
         context.extend(definitions);
-        return this.store(contextName, definitions).then(this.changeObserver.changed);
+        return this.store(contextName, definitions);
     }
 
     switchToContext(contextName) {

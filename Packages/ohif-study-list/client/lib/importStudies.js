@@ -11,7 +11,7 @@ OHIF.studylist.importStudies = filesToImport => {
         return new Promise((resolve, reject) => reject('No files to upload'));
     }
 
-    const uploadMessage = ({ processed, total }) => `Uploaded files: ${processed} / ${total}`;
+    const uploadMessage = msg => (typeof msg === 'undefined') ? '' : `Uploaded files: ${msg.processed} / ${msg.total}`;
 
     const taskRunHandler = dialog => {
         const uploadErrorHandler = fileNames => {
@@ -104,7 +104,7 @@ const importStudiesInternal = (studiesToImport, dialog) => {
                     const { numberOfStudiesImported, numberOfStudiesFailed } = studyImportStatus;
                     dialog.update(numberOfStudiesImported);
 
-                    if (numberOfStudiesImported === numberOfStudies) {
+                    if ((numberOfStudiesImported + numberOfStudiesFailed) === numberOfStudies) {
                         //  The entire import operation is completed, so remove the study import status item
                         Meteor.call('removeStudyImportStatus', studyImportStatus._id);
 

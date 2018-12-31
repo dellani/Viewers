@@ -1,5 +1,5 @@
 Npm.depends({
-    'twbs-pagination': '1.4.1'
+    'isomorphic-base64': '1.0.2',
 });
 
 Package.describe({
@@ -9,7 +9,7 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-    api.versionsFrom('1.4');
+    api.versionsFrom('1.7');
 
     api.use('ecmascript');
     api.use('standard-app-packages');
@@ -20,7 +20,7 @@ Package.onUse(function(api) {
     api.use('reactive-var');
 
     // Router dependencies
-    api.use('iron:router@1.0.13', 'client');
+    api.use('clinical:router@2.0.19', 'client');
 
     // Component's library dependencies
     api.use('natestrauser:select2@4.0.1', 'client');
@@ -42,10 +42,6 @@ Package.onUse(function(api) {
     // Client imports and routes
     api.addFiles('client/index.js', 'client');
 
-    // Server imports and methods
-    api.addFiles('server/index.js', 'server');
-
     // Client and server imports
     api.addFiles('both/index.js', ['client', 'server']);
-
 });

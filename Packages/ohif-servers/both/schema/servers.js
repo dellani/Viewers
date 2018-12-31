@@ -29,6 +29,12 @@ export const DICOMWebRequestOptions = new SimpleSchema({
         defaultValue: 'orthanc:orthanc',
         optional: true
     },
+    requestFromBrowser: {
+        type: Boolean,
+        label: 'Make DICOMWeb requests from the Browser',
+        defaultValue: false,
+        optional: true
+    },
     logRequests: {
         type: Boolean,
         defaultValue: true,
@@ -58,8 +64,16 @@ export const DICOMWebServer = new SimpleSchema({
     imageRendering: {
         type: String,
         label: 'Image rendering',
-        allowedValues: ['wadouri', 'orthanc'],
-        valuesLabels: ['WADO URI', 'ORTHANC']
+        allowedValues: ['wadouri', 'wadors'],
+        valuesLabels: ['WADO URI', 'WADO RS'],
+        defaultValue: 'wadouri'
+    },
+    thumbnailRendering: {
+        type: String,
+        label: 'Thumbnail rendering',
+        allowedValues: ['wadouri', 'wadors'],
+        valuesLabels: ['WADO URI', 'WADO RS'],
+        defaultValue: 'wadouri'
     },
     qidoRoot: {
         type: String,
@@ -68,7 +82,7 @@ export const DICOMWebServer = new SimpleSchema({
     },
     qidoSupportsIncludeField: {
         type: Boolean,
-        label: 'QIDO supports including fields',
+        label: 'QIDO supports "includefield" query key',
         defaultValue: false
     },
     requestOptions: {
@@ -240,6 +254,11 @@ export const PublicServerConfig = new SimpleSchema({
         type: Boolean,
         label: 'Creates demo user on startup and show TestDrive button',
         defaultValue: true
+    },
+    userAuthenticationRoutesEnabled: {
+        type: Boolean,
+        label: 'Enables routing to /login page.',
+        defaultValue: false,
     },
     ui: {
         type: UISettings,

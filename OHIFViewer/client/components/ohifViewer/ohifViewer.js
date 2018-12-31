@@ -1,6 +1,7 @@
+import { Meteor } from 'meteor/meteor';
 import { Template } from 'meteor/templating';
 import { Session } from 'meteor/session';
-import { Router } from 'meteor/iron:router';
+import { Router } from 'meteor/clinical:router';
 import { ReactiveVar } from 'meteor/reactive-var';
 import { OHIF } from 'meteor/ohif:core';
 
@@ -8,11 +9,17 @@ Template.ohifViewer.onCreated(() => {
     const instance = Template.instance();
     instance.headerClasses = new ReactiveVar('');
 
-    OHIF.header.dropdown.setItems([{
+    const headerItems = [{
         action: () => OHIF.ui.showDialog('serverInformationModal'),
         text: 'Server Information',
         icon: 'fa fa-server fa-lg',
         separatorAfter: true
+    }, {
+        action: () => OHIF.ui.showDialog('themeSelectorModal'),
+        text: 'Themes',
+        iconClasses: 'theme',
+        iconSvgUse: 'packages/ohif_viewerbase/assets/icons.svg#theme',
+        separatorAfter: false
     }, {
         action: () => OHIF.ui.showDialog('userPreferencesDialog'),
         text: 'Preferences',
@@ -22,7 +29,18 @@ Template.ohifViewer.onCreated(() => {
         action: () => OHIF.ui.showDialog('aboutModal'),
         text: 'About',
         icon: 'fa fa-info'
-    }]);
+    }];
+
+    if (OHIF.user.userLoggedIn() === true) {
+        headerItems.push({
+            action: OHIF.user.logout,
+            text: 'Logout',
+            iconClasses: 'logout',
+            iconSvgUse: 'packages/ohif_viewerbase/assets/user-menu-icons.svg#logout'
+        });
+    }
+
+    OHIF.header.dropdown.setItems(headerItems);
 
     instance.autorun(() => {
         const currentRoute = Router.current();

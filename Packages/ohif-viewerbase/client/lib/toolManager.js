@@ -115,38 +115,42 @@ export const toolManager = {
             mouse: cornerstoneTools.arrowAnnotate,
             touch: cornerstoneTools.arrowAnnotateTouch
         });
-
         toolManager.addTool('rotate', {
             mouse: cornerstoneTools.rotate,
             touch: cornerstoneTools.rotateTouchDrag
         });
-
         toolManager.addTool('spine', {
             mouse: cornerstoneTools.textMarker,
             touch: cornerstoneTools.textMarkerTouch
         });
-
         toolManager.addTool('crosshairs', {
             mouse: cornerstoneTools.crosshairs,
             touch: cornerstoneTools.crosshairsTouch
         });
 
+        toolManager.addTool('scaleOverlayTool', {
+          mouse: cornerstoneTools.scaleOverlayTool,
+        });
+
         // if a default tool is globally defined, make it the default tool...
         if (OHIF.viewer.defaultTool) {
-            defaultTool.left = OHIF.viewer.defaultTool;
+            this.setDefaultTool(OHIF.viewer.defaultTool);
         }
 
         defaultMouseButtonTools = Meteor.settings && Meteor.settings.public && Meteor.settings.public.defaultMouseButtonTools;
 
         // Override default tool if defined in settings
-        const defaultLeft = (defaultMouseButtonTools && defaultMouseButtonTools.left) || 'wwwc';
-        const defaultRight = (defaultMouseButtonTools && defaultMouseButtonTools.right) || 'zoom';
-        const defaultMiddle = (defaultMouseButtonTools && defaultMouseButtonTools.middle) || 'pan';
-        defaultTool = {
-            left: defaultLeft,
-            right: defaultRight,
-            middle: defaultMiddle
-        };
+        if (defaultMouseButtonTools) {
+            if (defaultMouseButtonTools.left) {
+                this.setDefaultTool(defaultMouseButtonTools.left);
+            }
+            if (defaultMouseButtonTools.right) {
+                this.setDefaultTool(defaultMouseButtonTools.right, 'right');
+            }
+            if (defaultMouseButtonTools.middle) {
+                this.setDefaultTool(defaultMouseButtonTools.middle, 'middle');
+            }
+        }
 
         this.configureTools();
         initialized = true;
@@ -170,10 +174,10 @@ export const toolManager = {
         toolStyle.setToolWidth(2);
 
         // Set color for inactive tools
-        toolColors.setToolColor('rgb(255, 255, 0)');
+        toolColors.setToolColor('rgb(255, 255, 0)'); // yellow
 
         // Set color for active tools
-        toolColors.setActiveColor('rgb(0, 255, 0)');
+        toolColors.setActiveColor('rgb(50, 205, 50)'); // limegreen
 
         // Set shadow configuration
         const shadowConfig = toolManager.getToolDefaultStates().shadowConfig;
@@ -565,7 +569,7 @@ export const toolManager = {
         }
 
         if (!toolId) {
-            toolId = defaultTool[button];
+            toolId = this.getDefaultTool(button);
         }
 
         // Otherwise, set the active tool for all viewport elements

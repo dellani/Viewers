@@ -11,6 +11,31 @@ OHIF.viewerbase.getImageDownloadDialogAnnotationTools = () => {
     return ['length', 'probe', 'simpleAngle', 'arrowAnnotate', 'ellipticalRoi', 'rectangleRoi'];
 };
 
+/**
+ * Converts a base64 data to a blob. This is needed to enabled JPEG images downloading on IE11.
+ * Source: https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript/16245768
+ */
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    const blob = new Blob(byteArrays, { type: contentType });
+    return blob;
+};
+
 Template.imageDownloadDialog.onCreated(() => {
     const instance = Template.instance();
 
@@ -31,10 +56,6 @@ Template.imageDownloadDialog.onCreated(() => {
             type: Boolean,
             label: 'Show Annotations',
             defaultValue: true
-        },
-        quality: {
-            type: Number,
-            defaultValue: 100
         }
     });
 
@@ -46,7 +67,7 @@ Template.imageDownloadDialog.onCreated(() => {
     instance.lastImage = {};
 
     instance.getConfirmCallback = () => () => {
-        instance.downloadImage();
+        return instance.downloadImage();
     };
 });
 
@@ -86,8 +107,7 @@ Template.imageDownloadDialog.onRendered(() => {
                 const formData = instance.form.value();
                 const image = instance.viewportPreview;
                 const type = 'image/' + formData.type;
-                const quality = formData.type === 'png' ? 1 : formData.quality / 100;
-                const dataUrl = instance.downloadCanvas.toDataURL(type, quality);
+                const dataUrl = instance.downloadCanvas.toDataURL(type, 1);
                 image.src = dataUrl;
 
                 const $element = $(enabledElement.element);
@@ -105,21 +125,19 @@ Template.imageDownloadDialog.onRendered(() => {
         });
     };
 
-    // TODO: Add quality parameter to cornerstoneTools' saveAs method
     instance.downloadImage = () => {
         const formData = instance.form.value();
-        const link = document.createElement('a');
-        link.download = `${formData.name}.${formData.type}`;
-        link.href = instance.viewportPreview.src;
+        const filename = `${formData.name}.${formData.type}`;
+        const mimetype = `image/${formData.type}`;
 
-        // Create a 'fake' click event to trigger the download
-        if (document.createEvent) {
-            const event = document.createEvent('MouseEvents');
-            event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            link.dispatchEvent(event);
-        } else if (link.fireEvent) {
-            link.fireEvent('onclick');
+        // Handles JPEG images for IE11
+        if (instance.downloadCanvas.msToBlob && formData.type === 'jpeg') {
+            const image = instance.downloadCanvas.toDataURL(mimetype, 1);
+            const blob = b64toBlob(image.replace('data:image/jpeg;base64,', ''), mimetype);
+            return window.navigator.msSaveBlob(blob, filename);
         }
+
+        return cornerstoneTools.saveAs(instance.viewportElement, filename, mimetype);
     };
 
     instance.autorun(() => {
@@ -160,6 +178,12 @@ Template.imageDownloadDialog.onRendered(() => {
     });
 });
 
+Template.imageDownloadDialog.onDestroyed(() => {
+    const instance = Template.instance();
+
+    cornerstone.disable(instance.viewportElement);
+});
+
 Template.imageDownloadDialog.events({
     'click .js-keep-aspect'(event, instance) {
         const currentState = instance.keepAspect.get();
@@ -168,10 +192,6 @@ Template.imageDownloadDialog.events({
     },
 
     'change [data-key=showAnnotations], change [data-key=type]'(event, instance) {
-        instance.changeObserver.changed();
-    },
-
-    'input [data-key=quality]'(event, instance) {
         instance.changeObserver.changed();
     },
 
@@ -209,12 +229,5 @@ Template.imageDownloadDialog.events({
 Template.imageDownloadDialog.helpers({
     keepAspect() {
         return Template.instance().keepAspect.get();
-    },
-
-    showQuality() {
-        const instance = Template.instance();
-        instance.changeObserver.depend();
-        if (!instance.form) return true;
-        return instance.form.item('type').value() === 'jpeg';
     }
 });

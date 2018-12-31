@@ -12,7 +12,7 @@ export default function({ instance, eventData, tool, toolGroupId, toolGroup }) {
     // Stop here if the tool data shall not be persisted (e.g. temp tools)
     if (!Collection) return;
 
-    const measurementTypeId = measurementApi.toolsGroupsMap[measurementData.toolType];
+    const measurementTypeId = measurementApi.toolsGroupsMap[eventData.toolType];
     const measurement = Collection.findOne(measurementData._id);
 
     // Stop here if the measurement is already gone or never existed
@@ -30,7 +30,7 @@ export default function({ instance, eventData, tool, toolGroupId, toolGroup }) {
     measurementApi.sortMeasurements(baseline.timepointId);
 
     // Repaint the images on all viewports without the removed measurements
-    _.each($('.imageViewerViewport'), element => cornerstone.updateImage(element));
+    _.each($('.imageViewerViewport:not(.empty)'), element => cornerstone.updateImage(element));
 
     // Notify that viewer suffered changes
     if (tool.toolGroup !== 'temp') {

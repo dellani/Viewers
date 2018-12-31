@@ -27,6 +27,22 @@ Template.toolbarSection.helpers({
         };
     },
 
+    rightSidebarToggleButtonData() {
+        const instance = Template.instance();
+        return {
+            toggleable: true,
+            key: 'rightSidebar',
+            value: instance.data.state,
+            options: [{
+                value: 'measurements',
+                svgLink: '/packages/ohif_viewerbase/assets/icons.svg#icon-measurements-lesions',
+                svgWidth: 18,
+                svgHeight: 10,
+                bottomLabel: 'Measurements'
+            }]
+        };
+    },
+
     toolbarButtons() {
         const extraTools = [];
 
@@ -35,13 +51,6 @@ Template.toolbarSection.helpers({
             title: 'Crosshairs',
             classes: 'imageViewerTool',
             iconClasses: 'fa fa-crosshairs'
-        });
-
-        extraTools.push({
-            id: 'stackScroll',
-            title: 'Stack Scroll',
-            classes: 'imageViewerTool',
-            iconClasses: 'fa fa-bars'
         });
 
         extraTools.push({
@@ -115,6 +124,13 @@ Template.toolbarSection.helpers({
         });
 
         const buttonData = [];
+
+        buttonData.push({
+            id: 'stackScroll',
+            title: 'Stack Scroll',
+            classes: 'imageViewerTool',
+            iconClasses: 'fa fa-bars'
+        });
 
         buttonData.push({
             id: 'zoom',

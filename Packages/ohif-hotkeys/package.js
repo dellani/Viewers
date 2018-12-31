@@ -9,7 +9,7 @@ Npm.depends({
 });
 
 Package.onUse(function(api) {
-    api.versionsFrom('1.4');
+    api.versionsFrom('1.7');
 
     // Meteor packages
     api.use([
@@ -18,8 +18,8 @@ Package.onUse(function(api) {
         'stylus',
         'reactive-var',
         'session',
-        'iron:router',
-        'u2622:persistent-session'
+        'clinical:router',
+        'cultofcoders:persistent-session'
     ]);
 
     // OHIF dependencies

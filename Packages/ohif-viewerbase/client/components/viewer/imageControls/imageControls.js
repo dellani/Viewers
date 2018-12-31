@@ -28,7 +28,9 @@ Template.imageControls.onRendered(() => {
 
 Template.imageControls.onDestroyed(() => {
     const instance = Template.instance();
-    $(window).off('resize', instance.handleResize);
+    if (instance.handleResize) {
+        $(window).off('resize', instance.handleResize);
+    }
 });
 
 Template.imageControls.events({
@@ -63,8 +65,8 @@ Template.imageControls.events({
             // Using the slider in an inactive viewport
             // should cause that viewport to become active
             const $slider = $(event.currentTarget);
-            const newActiveElement = $slider.parents('.viewportContainer').find('.imageViewerViewport');
-            setActiveViewport(newActiveElement);
+            const viewportContainer = $slider.parents('.viewportContainer');
+            setActiveViewport(viewportContainer);
 
             // Subtract 1 here since the slider goes from 1 to N images
             // But the stack indexing starts at 0

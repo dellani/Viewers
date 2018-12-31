@@ -227,6 +227,9 @@ import { InstanceMetadata } from './lib/classes/metadata/InstanceMetadata';
 import { StudySummary } from './lib/classes/metadata/StudySummary';
 Viewerbase.metadata = { StudyMetadata, SeriesMetadata, InstanceMetadata, StudySummary };
 
+import { plugins } from './lib/classes/plugins/';
+Viewerbase.plugins = plugins;
+
 // TypeSafeCollection
 import { TypeSafeCollection } from './lib/classes/TypeSafeCollection';
 Viewerbase.TypeSafeCollection = TypeSafeCollection;

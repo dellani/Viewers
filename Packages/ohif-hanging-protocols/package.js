@@ -4,8 +4,12 @@ Package.describe({
     version: '0.0.1'
 });
 
+Npm.depends({
+    'validate.js': '0.9.0'
+});
+
 Package.onUse(function(api) {
-    api.versionsFrom('1.4');
+    api.versionsFrom('1.7');
 
     api.use('ecmascript');
     api.use('standard-app-packages');
@@ -14,11 +18,11 @@ Package.onUse(function(api) {
     api.use('random');
     api.use('templating');
     api.use('natestrauser:select2@4.0.1', 'client');
-    api.use('iron:router@1.0.13');
+    api.use('clinical:router@2.0.19');
     api.use('momentjs:moment');
-    api.use('validatejs');
 
     // Our custom packages
+    api.use('ohif:core');
     api.use('ohif:viewerbase');
 
     api.addAssets('assets/dots.svg', 'client');

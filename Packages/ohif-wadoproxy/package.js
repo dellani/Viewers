@@ -5,23 +5,23 @@ Package.describe({
 });
 
 Npm.depends({
+    'query-string': '5.1.1',
     'performance-now': '2.1.0'
 });
 
 Package.onUse(function(api) {
-    api.versionsFrom('1.4');
+    api.versionsFrom('1.7');
 
     api.use('ecmascript');
-    api.use('standard-app-packages');
-    api.use('iron:router@1.0.13');
+    api.use('clinical:router@2.0.19');
 
     api.use('ohif:core');
     api.use('ohif:servers');
 
-    api.addFiles('server/namespace.js', 'server');
-    api.addFiles('server/initialize.js', 'server');
+    api.addFiles('both/namespace.js', ['client', 'server']);
+    api.addFiles('both/convertURL.js', ['client', 'server']);
+    api.addFiles('both/initialize.js', ['client', 'server']);
     api.addFiles('server/routes.js', 'server');
-    api.addFiles('server/convertURL.js', 'server');
 
     // Global exports
     api.export('WADOProxy');

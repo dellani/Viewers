@@ -9,7 +9,9 @@ const OHIF = {
     ui: {},
     utils: {},
     viewer: {},
-    cornerstone: {}
+    cornerstone: {},
+    user: {},
+    DICOMWeb: {}, // Temporarily added
 };
 
 // Expose the OHIF object to the client if it is on development mode

@@ -53,7 +53,9 @@ OHIF.mixins.select2 = new OHIF.Mixin({
                     }
 
                     // Check if there is already an empty option on items list
-                    if (!_.findWhere(items, { value: '' })) {
+                    // Note: If this is a multi-select input. Do not add a placeholder
+                    const isMultiple = instance.data.options && instance.data.options.multiple;
+                    if (!_.findWhere(items, { value: '' }) && isMultiple === false) {
                         // Clone the current items
                         const newItems = _.clone(items) || [];
                         newItems.unshift({
@@ -99,8 +101,9 @@ OHIF.mixins.select2 = new OHIF.Mixin({
                 // Get the focusable elements
                 const elements = [];
                 const $select2 = component.$element.nextAll('.select2:first');
+                const $select2Selection = $select2.find('.select2-selection');
                 elements.push(component.$element[0]);
-                elements.push($select2.find('.select2-selection')[0]);
+                elements.push($select2Selection[0]);
 
                 // Attach focus and blur handlers to focusable elements
                 $(elements).on('focus', event => {
@@ -127,6 +130,32 @@ OHIF.mixins.select2 = new OHIF.Mixin({
                 $select2.on('keydown ', event => {
                     if (event.which === 27) {
                         instance.component.$element.focus();
+                    }
+                });
+
+                // Handle dropdown opening when focusing the selection element
+                $select2Selection.on('keydown ', event => {
+                    const skipKeys = new Set([8, 9, 12, 16, 17, 18, 20, 27, 46, 91, 93]);
+                    const functionKeysRegex = /F[0-9]([0-9])?$/;
+                    const isFunctionKey = functionKeysRegex.test(event.key);
+                    if (skipKeys.has(event.which) || isFunctionKey) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Open the select2 dropdown
+                    instance.component.$element.select2('open');
+
+                    // Check if the pressed key will produce a character
+                    const searchSelector = '.select2-search__field';
+                    const $search = component.select2Instance.$dropdown.find(searchSelector);
+                    const isChar = OHIF.ui.isCharacterKeyPress(event);
+                    const char = event.key;
+                    if ($search.length && isChar && char.length === 1) {
+                        // Event needs to be triggered twice to work properly with this plugin
+                        $search.val(char).trigger('input').trigger('input');
                     }
                 });
 
@@ -177,9 +206,10 @@ OHIF.mixins.select2 = new OHIF.Mixin({
                 }
 
                 const $searchInput = $container.find('.select2-search__field');
-                $searchInput.on('keydown.focusOnEsc', event => {
-                    if (event.which === 27) {
-                        $searchInput.off('keydown.focusOnEsc');
+                $searchInput.on('keydown.focusOnFinish', event => {
+                    const keys = new Set([9, 13, 27]);
+                    if (keys.has(event.which)) {
+                        $searchInput.off('keydown.focusOnFinish');
                         instance.component.$element.focus();
                     }
                 });
